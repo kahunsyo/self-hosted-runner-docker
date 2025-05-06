@@ -1,0 +1,53 @@
+services:
+  docker: # Hostname must be "docker". Certificate is issued to "docker".
+    image: docker:24.0-dind-rootless
+    privileged: true
+    ports:
+      - "2376:2376"
+    healthcheck:
+      test: DOCKER_HOST=unix:///run/user/1000/docker.sock docker info || exit 1
+      interval: "30s"
+      timeout: "5s"
+      retries: 3
+      start_period: "5s"
+    
+    volumes:
+      - type: volume
+        source: rootless-certs
+        target: /certs
+      # To share the files across jobs, volumes are mounted on same path of runner container.
+      - type: volume
+        source: workspace
+        target: /home/runner/_work
+      - type: volume
+        source: actions-runner
+        target: /home/runner/actions-runner    
+  runner:
+    build: .
+    environment:
+      DOCKER_TLS_VERIFY: "1"
+      DOCKER_CERT_PATH: /rootless-certs/client/ 
+      DOCKER_HOST: tcp://docker:2376 # Hostname must be "docker". Certificate is issued to "docker".
+      
+      BASE_API_URL: https://api.github.com
+      ORGS_OR_REPOS: repos
+      RUNNER_SCOPE: kahunsyo/self-hosted-runner-docker
+      RUNNER_CFG_PAT: YOUR_GITHUB_TOKEN
+    volumes:
+      - type: volume
+        source: rootless-certs
+        target: /rootless-certs
+      # To share the files across jobs, volumes are mounted on same path of runner container.
+      - type: volume
+        source: workspace
+        target: /home/runner/_work
+      - type: volume
+        source: actions-runner
+        target: /home/runner/actions-runner
+    depends_on:
+      docker:
+        condition: service_healthy
+volumes:
+  rootless-certs:
+  workspace:
+  actions-runner:
