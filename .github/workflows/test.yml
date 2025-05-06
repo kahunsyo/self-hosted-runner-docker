@@ -1,0 +1,21 @@
+name: test run in self-hosted runner
+
+on:
+  push:
+  workflow_dispatch: 
+
+jobs:
+  build-and-push-image:
+    runs-on: self-hosted
+    steps:
+        - uses: actions/checkout@v4
+        - name: Basic Linux commamds
+          run: |
+            ls
+            hostname
+            touch foo
+        - name: Docker commands
+          run: |
+            docker info
+            docker ps -a
+            docker run --rm ubuntu sleep 15
