@@ -18,4 +18,6 @@ jobs:
           run: |
             docker info
             docker ps -a
+            docker image ls
             docker run --rm ubuntu sleep 15
+            docker run -d --rm ubuntu sleep 60 
