@@ -54,17 +54,18 @@ jobs:
       - name: Generate custom image tag
         id: custom_tag
         shell: bash
-        run: echo "tag=${GITHUB_REF_NAME}-${GITHUB_WORKFLOW_SHA:0:7}" >> $GITHUB_OUTPUT
+        run: |
+          echo "tag-ref-context-commit=${GITHUB_REF_NAME}-${{matrix.context}}-${GITHUB_WORKFLOW_SHA:0:7}" >> $GITHUB_OUTPUT
+          echo "tag-ref-context=${GITHUB_REF_NAME}-${{matrix.context}}" >> $GITHUB_OUTPUT
 
       - name: Generate metadata
         uses: docker/metadata-action@v5
         id: meta
         with:
-          images: ${{ env.REGISTRY }}/${{ matrix.context }}
+          images: ${{ env.REGISTRY }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=raw,value=${{ steps.custom_tag.outputs.tag }}
+            type=raw,value=${{ steps.custom_tag.outputs.tag-ref-context-commit }}
+            type=raw,value=${{ steps.custom_tag.outputs.tag-ref-context }}
 
       - name: Build and push
         id: push
@@ -76,10 +77,12 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           build-args: |
             TARGETARCH=${{ matrix.arch.arch }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/cache:${{ matrix.context }}
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/cache:${{ matrix.context }},mode=max
 
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v2
         with:
-          subject-name: ${{ env.REGISTRY }}/${{ matrix.context }}
+          subject-name: ${{ env.REGISTRY }}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
