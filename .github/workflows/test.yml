@@ -13,7 +13,7 @@ jobs:
       - name: Basic Linux commands
         run: |
           set -ux
-          cat /etc/os-relase
+          cat /etc/os-release
           ls
           hostname
           touch foo
