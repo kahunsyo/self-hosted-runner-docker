@@ -1,42 +1,43 @@
 services:
-  docker: # Hostname must be "docker". Certificate is issued to "docker".
-    image: docker:24.0-dind-rootless
+  docker:
+    image: docker:24.0-dind
+    pull_policy: daily
     privileged: true
-    ports:
-      - "2376:2376"
+    command: [ "dockerd", "-H", "tcp://0.0.0.0:2375", "--tls=false" ] # 2375 for No TLS
     healthcheck:
-      test: DOCKER_HOST=unix:///run/user/1000/docker.sock docker info || exit 1
+      test: DOCKER_HOST=tcp://0.0.0.0:2375 docker info || exit 1
       interval: "30s"
       timeout: "5s"
       retries: 3
       start_period: "5s"
-    
     volumes:
-      - type: volume
-        source: rootless-certs
-        target: /certs
       # To share the files across jobs, volumes are mounted on same path of runner container.
       - type: volume
         source: workspace
         target: /home/runner/_work
       - type: volume
         source: actions-runner
-        target: /home/runner/actions-runner    
+        target: /home/runner/actions-runner
+    environment:
+      DOCKER_TLS_VERIFY: '' # No TLS
+      # dockerd command ignores this env var, but we keep it for the manner.
+      # Documentation says that DOCKER_HOST is used to set the default host for the Docker client.
+      DOCKER_HOST: tcp://docker:2375 # 2375 for No TLS
   runner:
     build: .
+    pull_policy: build
+    hostname: $RUNNER_NAME
     environment:
-      DOCKER_TLS_VERIFY: "1"
-      DOCKER_CERT_PATH: /rootless-certs/client/ 
-      DOCKER_HOST: tcp://docker:2376 # Hostname must be "docker". Certificate is issued to "docker".
-      
+      DOCKER_TLS_VERIFY: '' # No TLS
+      DOCKER_HOST: tcp://docker:2375 # 2375 for No TLS
+
+      # EDIT BELOW
       BASE_API_URL: https://api.github.com
       ORGS_OR_REPOS: repos
       RUNNER_SCOPE: kahunsyo/self-hosted-runner-docker
-      RUNNER_CFG_PAT: YOUR_GITHUB_TOKEN
+      RUNNER_LABELS: test
+      RUNNER_CFG_PAT: ${RUNNER_CFG_PAT}
     volumes:
-      - type: volume
-        source: rootless-certs
-        target: /rootless-certs
       # To share the files across jobs, volumes are mounted on same path of runner container.
       - type: volume
         source: workspace
@@ -48,6 +49,6 @@ services:
       docker:
         condition: service_healthy
 volumes:
-  rootless-certs:
+  docker-certs:
   workspace:
   actions-runner:

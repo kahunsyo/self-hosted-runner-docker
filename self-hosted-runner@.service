@@ -1,0 +1,14 @@
+[Unit]
+Description=Self hosted runner by docker (Instance %i)
+Requires=docker.service
+After=docker.service
+
+[Service]
+ExecStart=start.sh runner-%i
+WorkingDirectory=/srv/self-hosted-runner-docker/
+Restart=always
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
