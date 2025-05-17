@@ -1,7 +1,7 @@
 # Hardly borrowed from https://github.com/actions/runner/blob/main/images/Dockerfile
 FROM ubuntu:20.04 AS build
 
-ARG TARGETOS=linux
+ARG TARGETOS
 ARG TARGETARCH
 ARG RUNNER_VERSION=2.324.0
 ARG RUNNER_CONTAINER_HOOKS_VERSION=0.7.0
