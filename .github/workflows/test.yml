@@ -2,23 +2,36 @@ name: test run in self-hosted runner
 
 on:
   push:
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
-  build-and-push-image:
-    runs-on: self-hosted
+  test-runner:
+    runs-on: [self-hosted, docker]
     steps:
-        - uses: actions/checkout@v4
-        - name: Basic Linux commamds
-          run: |
-            ls
-            hostname
-            touch foo
-        - name: Docker commands
-          run: |
-            docker info
-            docker ps -a
-            docker image ls
-            docker run --rm ubuntu sleep 15
-            docker run -d --rm ubuntu sleep 60
-            docker run -d ubuntu sleep 60 
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v2
+      - name: Basic Linux commands
+        run: |
+          set -ux
+          cat /etc/os-relase
+          ls
+          hostname
+          touch foo
+          id
+      - name: Docker commands
+        run: |
+          set -ux
+          docker info
+          docker ps -a
+          docker image ls
+          docker run --rm ubuntu hostname
+      - name: Docker mount test
+        run: |
+          set -ux
+          docker run -d --name ubuntu -v ${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE} -w ${GITHUB_WORKSPACE} --rm ubuntu sleep infinity
+          docker exec ubuntu pwd
+          docker exec ubuntu touch bar
+          docker exec ubuntu ls -l
+          pwd
+          ls -l
+      - uses: 
