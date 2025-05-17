@@ -22,7 +22,7 @@ To detail: https://docs.github.com/en/actions/hosting-your-own-runners/managing-
 ```shell
 # Set unique docker compose project name when multi-runners in one host
 # Default project is "runner"
-PROJECT='' sh start.sh
+sh start.sh $PROJECT
 ```
 
 ### Stop runner
@@ -30,6 +30,5 @@ PROJECT='' sh start.sh
 Stop start.sh script and stop runner project.
 
 ```shell
-PROJECT=''
 docker compose -p $PROJECT down --remove-orphans --volumes
 ```
