@@ -1,12 +1,12 @@
 # Hardly borrowed from https://github.com/actions/runner/blob/main/images/Dockerfile
 FROM ubuntu:22.04 AS build
 
-ARG TARGETOS
+ARG TARGETOS=linux
 ARG TARGETARCH
-ARG RUNNER_VERSION=null
-ARG RUNNER_CONTAINER_HOOKS_VERSION=null
-ARG DOCKER_VERSION=
-ARG BUILDX_VERSION=null
+ARG RUNNER_VERSION=2.324.0
+ARG RUNNER_CONTAINER_HOOKS_VERSION=0.7.0
+ARG DOCKER_VERSION=28.1.1
+ARG BUILDX_VERSION=0.23.0
 
 RUN apt update -y && apt install curl unzip -y
 
